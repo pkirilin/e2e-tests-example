@@ -5,26 +5,42 @@ on:
   pull_request:
     branches: [main]
 jobs:
-  run-e2e-tests:
+  e2e-tests:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Start containers
+      run: docker-compose -f "docker-compose.yml" up -d --build
+
+    - name: Setup node
+      uses: actions/setup-node@v3
       with:
         node-version: 18.14.x
+
     - name: Install dependencies
       run: yarn
       working-directory: ./tests/e2e
+
     - name: Install Playwright Browsers
       run: yarn playwright install --with-deps
       working-directory: ./tests/e2e
+
     - name: Run Playwright tests
       run: yarn playwright test
       working-directory: ./tests/e2e
-    - uses: actions/upload-artifact@v3
+
+    - name: Upload test report
+      uses: actions/upload-artifact@v3
       if: always()
       with:
         name: playwright-report
         path: tests/e2e/playwright-report/
         retention-days: 30
+
+    - name: Stop containers
+      if: always()
+      run: docker-compose -f "docker-compose.yml" down
