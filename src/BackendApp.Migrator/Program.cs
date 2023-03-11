@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BackendApp.Web.Infrastructure;
+using BackendApp.Web.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
@@ -23,7 +25,14 @@ internal class Program
                 return -1;
             }
 
-            await MigrateAsync(args, logger, loggerFactory, cancellationToken);
+            var context = CreateDbContext(args, loggerFactory);
+            await MigrateAsync(context, logger, cancellationToken);
+
+            if (MigratorConfiguration.IsSeedDataEnabled)
+            {
+                await SeedDataAsync(context, cancellationToken);
+            }
+            
             return 0;
         }
         catch (Exception e)
@@ -70,19 +79,18 @@ internal class Program
 
         return false;
     }
-    
-    private static async Task MigrateAsync(
-        string[] args,
-        ILogger logger,
-        ILoggerFactory loggerFactory,
-        CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
 
+    private static AppDbContext CreateDbContext(string[] args, ILoggerFactory loggerFactory)
+    {
+        var factory = new AppDbContextFactory(loggerFactory);
+        var context = factory.CreateDbContext(args);
+        return context;
+    }
+    
+    private static async Task MigrateAsync(DbContext context, ILogger logger, CancellationToken cancellationToken)
+    {
         try
         {
-            var factory = new AppDbContextFactory(loggerFactory);
-            var context = factory.CreateDbContext(args);
             await context.Database.MigrateAsync(cancellationToken);
         }
         catch (Exception e)
@@ -90,5 +98,13 @@ internal class Program
             logger.LogError(e, "Error while applying migrations");
             throw;
         }
+    }
+
+    private static async Task SeedDataAsync(AppDbContext context, CancellationToken cancellationToken)
+    {
+        context.Todos.Add(new Todo { Id = 1, Title = "First" });
+        context.Todos.Add(new Todo { Id = 2, Title = "Second" });
+        context.Todos.Add(new Todo { Id = 3, Title = "Third" });
+        await context.SaveChangesAsync(cancellationToken);
     }
 }

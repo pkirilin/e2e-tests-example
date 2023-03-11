@@ -15,6 +15,7 @@ services:
       dockerfile: Dockerfile.migrator
     environment:
       - MIGRATOR_ENV=e2e
+      - MIGRATOR_SEED_DATA=true
   web:
     depends_on:
       - migrator
