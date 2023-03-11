@@ -1,10 +1,27 @@
 version: "3.9"
 services:
-  web:
-    build: .
-    ports:
-      - "10000:80"
   mysql:
+    ports:
+      - "3306:3306"
     image: "mysql:8.0.32"
     environment:
       - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=e2e_tests_example
+  migrator:
+    depends_on:
+      - mysql
+    build:
+      context: .
+      dockerfile: Dockerfile.migrator
+    environment:
+      - MIGRATOR_ENV=e2e
+  web:
+    depends_on:
+      - migrator
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "10000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=e2e

@@ -1,5 +1,7 @@
 using BackendApp.Web.Contracts;
+using BackendApp.Web.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BackendApp.Web.Controllers;
 
@@ -7,19 +9,23 @@ namespace BackendApp.Web.Controllers;
 [Route("api/todos")]
 public class TodosController : ControllerBase
 {
-    private static readonly IEnumerable<TodoItem> Todos = new[]
+    private readonly AppDbContext _context;
+
+    public TodosController(AppDbContext context)
     {
-        new TodoItem { Id = 1, Title = "First" },
-        new TodoItem { Id = 2, Title = "Second" },
-        new TodoItem { Id = 3, Title = "Third" }
-    };
+        _context = context;
+    }
 
     [HttpGet]
-    public IActionResult GetTodos()
+    public async Task<IActionResult> GetTodos(CancellationToken cancellationToken)
     {
-        return Ok(new TodosResponse
+        var todos = await _context.Todos.ToListAsync(cancellationToken);
+
+        var response = new TodosResponse
         {
-            Todos = Todos
-        });
+            Todos = todos.Select(static todo => new TodoItem { Id = todo.Id, Title = todo.Title })
+        };
+        
+        return Ok(response);
     }
 }

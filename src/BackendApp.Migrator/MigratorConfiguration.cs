@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace BackendApp.Migrator;
 
-public class MigratorConfiguration
+public static class MigratorConfiguration
 {
     private static readonly IConfiguration Configuration;
 
@@ -15,15 +15,11 @@ public class MigratorConfiguration
     
     private static IConfiguration BuildConfiguration()
     {
-        var builder = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json");
+        var env = Environment.GetEnvironmentVariable("MIGRATOR_ENV");
         
-        var env = Environment.GetEnvironmentVariable("ENV");
-
-        if (env == "Development")
-        {
-            builder.AddUserSecrets("041ffd97-30fe-4287-9696-0d9dc4be23c1");
-        }
+        var builder = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.migrator.json")
+            .AddJsonFile($"appsettings.migrator.{env}.json", true);
 
         return builder
             .AddEnvironmentVariables()
