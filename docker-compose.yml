@@ -4,3 +4,7 @@ services:
     build: .
     ports:
       - "10000:80"
+  mysql:
+    image: "mysql:8.0.32"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
