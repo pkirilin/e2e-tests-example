@@ -40,5 +40,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - "10000:80"
+      - "11000:443"
     environment:
       - ASPNETCORE_ENVIRONMENT=e2e
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=test
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/app.pfx
+    volumes:
+      - ./tests/e2e/https:/https:ro
+    entrypoint: "/bin/bash -c 'cp /https/ca.cert.crt /usr/local/share/ca-certificates/ca.cert.crt && chmod 644 /usr/local/share/ca-certificates/ca.cert.crt && update-ca-certificates && dotnet BackendApp.Web.dll'"

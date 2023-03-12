@@ -1,1 +1,1 @@
-export const APP_URL = "http://localhost:10000";
+export const APP_URL = "https://localhost:11000";
