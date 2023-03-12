@@ -3,7 +3,6 @@ using BackendApp.Web.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MySqlConnector;
 
 namespace BackendApp.Migrator;
 
@@ -18,13 +17,6 @@ internal class Program
             var serviceProvider = BuildServiceProvider();
             var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger<Program>();
-            var isDbReady = await IsDbReadyAsync(logger, cancellationToken);
-
-            if (!isDbReady)
-            {
-                return -1;
-            }
-
             var context = CreateDbContext(args, loggerFactory);
             await MigrateAsync(context, logger, cancellationToken);
 
@@ -49,35 +41,6 @@ internal class Program
 
             return services.BuildServiceProvider();
         }
-    }
-
-    private static async Task<bool> IsDbReadyAsync(ILogger logger, CancellationToken cancellationToken)
-    {
-        const int maxRetriesCount = 10;
-        var retryNumber = 0;
-        var connectionString = MigratorConfiguration.ConnectionString;
-        
-        logger.LogInformation("Checking if the database is ready...");
-
-        do
-        {
-            var retryDelayMultiplier = Math.Pow(2, retryNumber) - 1;
-            await Task.Delay(TimeSpan.FromSeconds(retryNumber * retryDelayMultiplier), cancellationToken);
-            
-            try
-            {
-                retryNumber++;
-                await using var connection = new MySqlConnection(connectionString);
-                await connection.OpenAsync(cancellationToken);
-                return true;
-            }
-            catch (Exception)
-            {
-                logger.LogInformation("Received error from database, retrying [{RetryNumber}]...", retryNumber);
-            }
-        } while (retryNumber < maxRetriesCount);
-
-        return false;
     }
 
     private static AppDbContext CreateDbContext(string[] args, ILoggerFactory loggerFactory)
