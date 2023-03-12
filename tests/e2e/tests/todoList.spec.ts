@@ -1,6 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { APP_URL } from "../config";
 
+test.use({
+  ignoreHTTPSErrors: true,
+});
+
 test("todo list title is visible", async ({ page }) => {
   await page.goto(APP_URL);
 
