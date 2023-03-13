@@ -1,5 +1,4 @@
 ﻿using BackendApp.Web.Infrastructure;
-using BackendApp.Web.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -19,12 +18,6 @@ internal class Program
             var logger = loggerFactory.CreateLogger<Program>();
             var context = CreateDbContext(args, loggerFactory);
             await MigrateAsync(context, logger, cancellationToken);
-
-            if (MigratorConfiguration.IsSeedDataEnabled)
-            {
-                await SeedDataAsync(context, cancellationToken);
-            }
-            
             return 0;
         }
         catch (Exception e)
@@ -61,13 +54,5 @@ internal class Program
             logger.LogError(e, "Error while applying migrations");
             throw;
         }
-    }
-
-    private static async Task SeedDataAsync(AppDbContext context, CancellationToken cancellationToken)
-    {
-        context.Todos.Add(new Todo { Id = 1, Title = "First" });
-        context.Todos.Add(new Todo { Id = 2, Title = "Second" });
-        context.Todos.Add(new Todo { Id = 3, Title = "Third" });
-        await context.SaveChangesAsync(cancellationToken);
     }
 }

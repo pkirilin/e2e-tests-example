@@ -8,10 +8,6 @@ public static class MigratorConfiguration
 
     public static string ConnectionString => Configuration["ConnectionStrings:MySql"];
 
-    public static bool IsSeedDataEnabled =>
-        bool.TryParse(Environment.GetEnvironmentVariable("MIGRATOR_SEED_DATA"), out var seedData) &&
-        seedData;
-    
     static MigratorConfiguration()
     {
         Configuration = BuildConfiguration();

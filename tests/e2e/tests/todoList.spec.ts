@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { APP_URL } from "../config";
+import { seedData } from "../data";
 
 test.use({
   ignoreHTTPSErrors: true,
@@ -12,6 +13,8 @@ test("todo list title is visible", async ({ page }) => {
 });
 
 test("todo list items are visible", async ({ page }) => {
+  await seedData();
+
   await page.goto(APP_URL);
 
   await expect(page.locator("ul > li")).toContainText([
